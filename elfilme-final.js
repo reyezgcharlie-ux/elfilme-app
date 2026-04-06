@@ -1,3 +1,6 @@
+--89abdbf1c5fd2201ca302fa22ad2fea2bba2d7abab4e15f1089e7ef7f8a1
+Content-Disposition: form-data; name="worker.js"
+
 // ELFILME.COM — Cloudflare Worker
 // Rutas: /login /estrenos /noticiero /live / + APIs D1
 
@@ -156,6 +159,15 @@ async function handleAPI(path, method, request, env) {
     if (!user) return json({ error: 'No autorizado' }, 401);
     const result = await env.DB.prepare('SELECT COUNT(*) as count FROM messages WHERE to_user_id=? AND is_read=0').bind(user.id).first();
     return json({ ok: true, count: result.count });
+  }
+
+
+  // CATALOG desde D1
+  if (path === '/api/catalog' && method === 'GET') {
+    try {
+      const res = await env.DB.prepare('SELECT * FROM catalog WHERE is_active=1 ORDER BY category, id').all();
+      return json({ ok: true, movies: res.results });
+    } catch(e) { return json({ ok: true, movies: [] }); }
   }
 
   return json({ error: 'Not found' }, 404);
@@ -3293,3 +3305,4 @@ const NOT_FOUND_HTML = `<!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"/><title>ElFilme 404</title>
 <style>body{background:#0a0a0a;color:#e5e5e5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;}h1{font-size:5rem;color:#e50914;}a{color:#e50914;text-decoration:none;display:block;margin-top:1rem;}</style>
 </head><body><div><h1>404</h1><p>Página no encontrada</p><a href="/">← Volver</a></div></body></html>`;
+--89abdbf1c5fd2201ca302fa22ad2fea2bba2d7abab4e15f1089e7ef7f8a1--
